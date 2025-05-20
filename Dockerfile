@@ -74,6 +74,7 @@ EXPOSE 8000
 
 # Start Laravel app
 CMD php artisan migrate --force && \
+    php artisan db:seed --force && \
     php artisan config:clear && \
     php artisan cache:clear && \
     php artisan route:clear && \
