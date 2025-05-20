@@ -1,7 +1,7 @@
-# Use the official PHP image with necessary extensions
+# Use the official PHP 8.2 image
 FROM php:8.2-cli
 
-# Install dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -14,33 +14,38 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libsodium-dev \
-    libpq -dev \
+    libpq-dev \
     default-mysql-client \
     default-libmysqlclient-dev \
-    libfreetype6 \
-    libjpeg62-turbo -dev \
+    libjpeg62-turbo-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium  \
+    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium
 
-# Install Composer globally
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# install nodejs and npm 
-RUN curl -sL https://deb.nodesource.com/setup_18.x | bash && \
-    && apt-get update && apt-get install -y nodejs 
+# Install Node.js (v18)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
+
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy existing application files
+# Copy Laravel project files
 COPY . .
 
-# Expose port 8000 for PHP-FPM
+# Install PHP and Node.js dependencies
+RUN composer install --no-dev --optimize-autoloader
+RUN npm install && npm run build || true  # Skip build if no front-end
+
+# Expose port for Laravel dev server
 EXPOSE 8000
 
-# Install PHP and JS dependencies
-RUN composer install
-RUN npm install
+# Clear caches and prepare Laravel
+RUN php artisan config:clear \
+    && php artisan cache:clear \
+    && php artisan route:clear \
+    && php artisan view:clear
 
-
-# Run Laravel migrations and start the server
+# Run migrations and start Laravel server
 CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
