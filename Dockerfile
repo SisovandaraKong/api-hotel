@@ -38,8 +38,7 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader# Use PHP-FPM for web serving
 FROM php:8.2-fpm
 
-# Set permissions for Laravel
-RUN chown -R www-data:www-data storage bootstrap/cache
+
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
