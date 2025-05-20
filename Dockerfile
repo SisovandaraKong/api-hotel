@@ -46,11 +46,12 @@ RUN npm install && npm run build || echo "Skipping frontend build"
 EXPOSE 8000
 
 # Run Laravel startup commands when the container starts
-CMD php artisan config:clear \
-    && php artisan cache:clear \
-    && php artisan route:clear \
-    && php artisan view:clear \
-    && php artisan cache:table \
-    && php artisan migrate --force \
-    && php artisan serve --host=0.0.0.0 --port=8000
+CMD php artisan config:clear && \
+    php artisan cache:clear && \
+    php artisan route:clear && \
+    php artisan view:clear && \
+    php artisan migrate --force && \
+    php artisan serve --host=0.0.0.0 --port=8000
+
+
 
