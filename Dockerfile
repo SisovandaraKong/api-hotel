@@ -32,8 +32,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
 WORKDIR /var/www/html
 
 # Copy Laravel files
-COPY . .\
-
+COPY . .
 
 
 
