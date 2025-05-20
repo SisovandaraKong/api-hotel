@@ -32,13 +32,16 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
 WORKDIR /var/www/html
 
 # Copy Laravel files
-COPY . .
+COPY . .\
+
+
+
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
 # Install Node dependencies if front-end exists (ignore failure)
-RUN npm install && npm run build || true
+RUN npm install && npm run build || echo "Skipping frontend build"
 
 # Expose port for Laravel server
 EXPOSE 8000
@@ -48,5 +51,7 @@ CMD php artisan config:clear \
     && php artisan cache:clear \
     && php artisan route:clear \
     && php artisan view:clear \
+    && php artisan cache:table \
     && php artisan migrate --force \
     && php artisan serve --host=0.0.0.0 --port=8000
+
