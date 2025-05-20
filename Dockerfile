@@ -1,4 +1,4 @@
-# Use the official PHP 8.2 image
+# Use the official PHP image
 FROM php:8.2-cli
 
 # Install system dependencies
@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
 # Install Node.js (v18)
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
@@ -31,21 +31,22 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy Laravel project files
+# Copy Laravel files
 COPY . .
 
-# Install PHP and Node.js dependencies
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
-RUN npm install && npm run build || true  # Skip build if no front-end
 
-# Expose port for Laravel dev server
+# Install Node dependencies if front-end exists (ignore failure)
+RUN npm install && npm run build || true
+
+# Expose port for Laravel server
 EXPOSE 8000
 
-# Clear caches and prepare Laravel
-RUN php artisan config:clear \
+# Run Laravel startup commands when the container starts
+CMD php artisan config:clear \
     && php artisan cache:clear \
     && php artisan route:clear \
-    && php artisan view:clear
-
-# Run migrations and start Laravel server
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
+    && php artisan view:clear \
+    && php artisan migrate --force \
+    && php artisan serve --host=0.0.0.0 --port=8000
