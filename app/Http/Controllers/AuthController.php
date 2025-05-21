@@ -14,23 +14,18 @@ class AuthController extends Controller
         $req->validate([
             'name' => ['required','string','max:250'],
             'avatar' => ['nullable','file','mimetypes:image/png,image/jpeg','max:2048'],
-            'email' => ['required','email','max:250','unique:users,email'],
+            'email' => ['required','email','max:250'],
             'password' => ['required','string','min:8','max:250','confirmed'],
             'gender' => ['nullable','string','in:male,female,other'],
         ]);
 
         // store avatar
-        $avatar = 'avatars/no_photo.jpg'; //set default avatar
+        $avatar = 'avatars/no_photo.jpg'; // set default avatar
         if ($req->hasFile('avatar')) {
             $avatar = $req->file('avatar')->store('avatars', ['disk' => 'public']);
         }
-
-        // arrange before store
-        $req->merge(['role_id' => 1]); // set default role
-
-        // store data
         $user = new User($req->only(['name', 'role_id', 'email', 'password', 'gender']));
-        $user->avatar = $avatar;
+        $user->avatar = $avatar; // store path only
         $user->save();
 
         // generate token
@@ -42,6 +37,7 @@ class AuthController extends Controller
             'message' => 'User registered ban hy',
             'data' => [
                 'user' => $user,
+                'avatar_url' => asset('storage/' . $user->avatar), // <-- full HTTPS URL
                 'token' => $token,
             ]
         ]);
@@ -61,7 +57,7 @@ class AuthController extends Controller
             return response()->json([
                 'result' => false,
                 'message' => 'Incorrect email or password! Check again.'
-            ]);
+            ], 401); // <-- set status code 401
         }
 
         // check password
@@ -69,7 +65,7 @@ class AuthController extends Controller
             return response()->json([
                 'result' => false,
                 'message' => 'Incorrect email or password! Check again.'
-            ]);
+            ], 401); // <-- set status code 401
         }
 
         // generate token
@@ -87,7 +83,10 @@ class AuthController extends Controller
     }
 
     public function logout(Request $req) {
-        $req->user('sanctum')->currentAccessToken()->delete();
+        $user = $req->user('sanctum');
+        if ($user && $user->currentAccessToken()) {
+            $user->currentAccessToken()->delete();
+        }
 
         return response()->json([
             'result' => true,
@@ -111,7 +110,7 @@ class AuthController extends Controller
         $req->validate([
             'name' => ['required','string','max:250'],
             'avatar' => ['nullable','file','mimetypes:image/png,image/jpeg','max:2048'],
-            'email' => ['required','email','max:250','unique:users,email'],
+            'email' => ['required','email','max:250'],
             'password' => ['required','string','min:8','max:250','confirmed'],
             'gender' => ['nullable','string','in:male,female,other'],
         ]);
@@ -144,7 +143,7 @@ class AuthController extends Controller
         $req->validate([
             'name' => ['required','string','max:250'],
             'avatar' => ['nullable','file','mimetypes:image/png,image/jpeg','max:2048'],
-            'email' => ['required','email','max:250','unique:users,email'],
+            'email' => ['required','email','max:250'],
             'password' => ['required','string','min:8','max:250','confirmed'],
             'gender' => ['nullable','string','in:male,female,other'],
         ]);
@@ -171,7 +170,5 @@ class AuthController extends Controller
             ]
         ]);
     }
-
-
 
 }

@@ -14,6 +14,7 @@ class RoomType extends Model
         'price',
         'description',
         'capacity',
+        'image', // Add this line
     ];
 
     /**

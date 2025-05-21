@@ -34,6 +34,7 @@ class RoomTypeController extends Controller
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
             'capacity' => 'required|integer|min:1',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Add validation
         ]);
 
         if ($validator->fails()) {
@@ -44,18 +45,24 @@ class RoomTypeController extends Controller
             ], 422);
         }
 
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('room_types', 'public');
+        }
+
         $roomType = RoomType::create([
             'type' => $request->type,
             'price' => $request->price,
             'description' => $request->description,
             'capacity' => $request->capacity,
+            'image' => $imagePath,
         ]);
 
         return response()->json([
             'result' => true,
             'message' => 'Room type created successfully',
             'data' => new RoomTypeResource($roomType)
-        ]);
+        ], 201); // <-- Use 201 Created
     }
 
     /**
@@ -77,7 +84,7 @@ class RoomTypeController extends Controller
             'result' => true,
             'message' => 'Room type retrieved successfully',
             'data' => new RoomTypeResource($roomType)
-        ]);
+        ], 200);
     }
 
     /**
@@ -101,6 +108,7 @@ class RoomTypeController extends Controller
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
             'capacity' => 'required|integer|min:1',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Add validation
         ]);
 
         if ($validator->fails()) {
@@ -111,18 +119,25 @@ class RoomTypeController extends Controller
             ], 422);
         }
 
+        $imagePath = $roomType->image;
+        if ($request->hasFile('image')) {
+            // Optionally delete old image here
+            $imagePath = $request->file('image')->store('room_types', 'public');
+        }
+
         $roomType->update([
             'type' => $request->type,
             'price' => $request->price,
             'description' => $request->description,
             'capacity' => $request->capacity,
+            'image' => $imagePath,
         ]);
 
         return response()->json([
             'result' => true,
             'message' => 'Room type updated successfully',
             'data' => new RoomTypeResource($roomType)
-        ]);
+        ], 200);
     }
 
     /**
@@ -156,6 +171,6 @@ class RoomTypeController extends Controller
             'result' => true,
             'message' => 'Room type deleted successfully',
             'data' => null
-        ]);
+        ], 200);
     }
 }

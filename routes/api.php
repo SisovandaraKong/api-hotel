@@ -66,7 +66,6 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
         Route::delete('/rooms/{id}', [RoomController::class, 'destroy']);
 
         // Room type management
-
         Route::post('/room-types', [RoomTypeController::class, 'store']);
         Route::put('/room-types/{id}', [RoomTypeController::class, 'update']);
         Route::delete('/room-types/{id}', [RoomTypeController::class, 'destroy']);

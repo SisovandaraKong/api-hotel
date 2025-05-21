@@ -7,16 +7,15 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class RoomTypeResource extends JsonResource
 {
-    public function toArray(Request $request): array
+    public function toArray($request)
     {
         return [
             'id' => $this->id,
             'type' => $this->type,
-            'price' => (float) $this->price,
+            'price' => $this->price,
             'description' => $this->description,
             'capacity' => $this->capacity,
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
+            'image_url' => $this->image ? asset('storage/' . $this->image) : null,
         ];
     }
 }

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('role_id');
             $table->string('avatar')->default('avatars/no_photo.jpg');
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email');
             $table->enum('gender', ['male', 'female', 'other'])->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
