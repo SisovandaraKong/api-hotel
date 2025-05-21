@@ -19,12 +19,17 @@ class Role extends Model
 
     public function run()
     {
-        DB::table('roles')->truncate(); // This clears the table
-
         Role::updateOrInsert(
             ['id' => 1],
             ['name' => 'Regular User']
         );
-        // ...existing seeding code...
+        Role::updateOrInsert(
+            ['id' => 2],
+            ['name' => 'Admin']
+        );
+        Role::updateOrInsert(
+            ['id' => 3],
+            ['name' => 'Super Admin']
+        );
     }
 }

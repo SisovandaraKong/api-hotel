@@ -20,9 +20,10 @@ class DatabaseSeeder extends Seeder
 
         // save default role to db
         foreach ($dataRoles as $dataRole) {
-            $role = new Role($dataRole);
-            $role->id = $dataRole['id'];
-            $role->save();
+            Role::updateOrInsert(
+                ['id' => $dataRole['id']],
+                ['name' => $dataRole['name']]
+            );
         }
     }
 }
