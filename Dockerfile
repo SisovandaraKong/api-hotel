@@ -69,6 +69,10 @@ WORKDIR /var/www/html
 # Copy built app from build stage
 COPY --from=build /var/www/html /var/www/html
 
+# Set correct permissions for Laravel storage and cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+
 # Expose port
 EXPOSE 8000
 
