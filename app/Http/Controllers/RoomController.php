@@ -93,7 +93,8 @@ class RoomController extends Controller
      * Store a newly created room in storage.
      * Only accessible by admin and superadmin.
      */
-    public function store(Request $req){
+    public function store(Request $req)
+    {
         // Check if user is admin or super admin
         $user = $req->user('sanctum');
         // if (!$user || !$user->IsAdmin()) {
@@ -103,21 +104,17 @@ class RoomController extends Controller
         //         'data' => null
         //     ], 403);
         // }
+
         // Validate request
         $req->validate([
             'room_number' => ['required', 'string', 'max:10', 'unique:rooms,room_number'],
             'room_type_id' => ['required', 'integer', 'exists:room_types,id'],
             'desc' => ['required', 'string'],
-            'room_image' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg,image/jpg', 'max:2048'],
-            'room_images' => ['nullable', 'array', 'max:5'],
-            'room_images.*' => ['file', 'mimetypes:image/png,image/jpeg,image/jpg', 'max:2048'],
         ]);
 
-        // Handle room thumbnail
-        $thumbnail = 'no_image.jpg';
-        if ($req->hasFile('room_image')) {
-            $thumbnail = $req->file('room_image')->store('rooms', ['disk' => 'public']);
-        }
+        // Get image from room type
+        $roomType = \App\Models\RoomType::find($req->input('room_type_id'));
+        $thumbnail = $roomType ? $roomType->image : 'no_image.jpg';
 
         // Create new room
         $room = new Room();
@@ -126,18 +123,6 @@ class RoomController extends Controller
         $room->desc = $req->input('desc');
         $room->room_image = $thumbnail;
         $room->save();
-
-        // Handle multiple room images
-        if ($req->hasFile('room_images')) {
-            foreach ($req->file('room_images') as $image) {
-                $imagePath = $image->store('room_images', ['disk' => 'public']);
-
-                // Store image path in room_images table
-                $room->images()->create([
-                    'image_url' => $imagePath
-                ]);
-            }
-        }
 
         // Refresh room with its type and images
         $room = Room::with(['roomType', 'images'])->find($room->id);

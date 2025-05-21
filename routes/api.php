@@ -11,6 +11,8 @@ use App\Http\Middleware\IsAdmin;
 use App\Http\Middleware\IsLogin;
 use App\Http\Middleware\IsSuperAdmin;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\ServiceTypeController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/register-admin', [AuthController::class, 'registerAdmin']);
@@ -32,8 +34,17 @@ Route::get('/cancellation-policy', [BookingController::class, 'getCancellationPo
 
 //Get all users
 Route::get('/users', [UserController::class, 'index']);
+
+// Get all admins
+Route::get('/admins', [SuperAdminController::class, 'getAllAdmins']);
+
+// Get all super admins
+Route::get('/super-admins', [SuperAdminController::class, 'getSuperAdmins']);
+
 // Get all room types
 Route::get('/room-types', [RoomTypeController::class, 'index']);
+
+
 // Protected routes - require login
 Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     // Auth routes
@@ -61,6 +72,7 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     // Admin routes
     Route::middleware(['auth:sanctum',IsAdmin::class])->group(function () {
         // Room management
+        Route::get('/rooms', [RoomController::class, 'index']);
         Route::post('/rooms', [RoomController::class, 'store']);
         Route::put('/rooms/{id}', [RoomController::class, 'update']);
         Route::delete('/rooms/{id}', [RoomController::class, 'destroy']);
@@ -80,9 +92,12 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
 
     // Super admin routes
     Route::middleware(['auth:sanctum',IsSuperAdmin::class])->group(function () {
-        // Admin management
-        Route::post('/admin/users', [AdminController::class, 'createUser']);
-        Route::put('/admin/users/{id}/role', [AdminController::class, 'updateUserRole']);
-        Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser']);
+        // Service type management
+    Route::get('/service-types', [ServiceTypeController::class, 'index']);
+    Route::post('/service-types', [ServiceTypeController::class, 'store']);
+    Route::get('/service-types/{id}', [ServiceTypeController::class, 'show']);
+    Route::put('/service-types/{id}', [ServiceTypeController::class, 'update']);
+    Route::delete('/service-types/{id}', [ServiceTypeController::class, 'destroy']);
+
     });
 });

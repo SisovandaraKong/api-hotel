@@ -411,4 +411,16 @@ class AdminController extends Controller
             ]
         ]);
     }
+
+    // Get all admins
+    public function getAdmins(Request $request)
+    {
+        $admins = User::where('role_id', 2)->get();
+
+        return response()->json([
+            'result' => true,
+            'message' => 'Admins retrieved successfully',
+            'data' => UserResource::collection($admins)
+        ]);
+    }
 }
