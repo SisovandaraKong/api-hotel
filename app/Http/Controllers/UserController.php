@@ -52,12 +52,12 @@ class UserController extends Controller
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
             // Delete old avatar if it's not the default
-            if ($user->avatar !== 'avatars/no_photo.jpg') {
+            if ($user->avatar !== 'user/no_photo.jpg') {
                 Storage::disk('public')->delete($user->avatar);
             }
 
-            // Store new avatar
-            $avatarPath = $request->file('avatar')->store('avatars', ['disk' => 'public']);
+            // Store new avatar in 'user' directory
+            $avatarPath = $request->file('avatar')->store('user', ['disk' => 'public']);
             $user->avatar = $avatarPath;
         }
 

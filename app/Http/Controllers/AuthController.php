@@ -24,6 +24,9 @@ class AuthController extends Controller
         if ($req->hasFile('avatar')) {
             $avatar = $req->file('avatar')->store('avatars', ['disk' => 'public']);
         }
+
+        $req->merge(['role_id' => 1]); // <-- set default role_id for normal user
+
         $user = new User($req->only(['name', 'role_id', 'email', 'password', 'gender']));
         $user->avatar = $avatar; // store path only
         $user->save();
@@ -34,7 +37,7 @@ class AuthController extends Controller
         // response back
         return response()->json([
             'result' => true,
-            'message' => 'User registered ban hy',
+            'message' => 'User registered successfully',
             'data' => [
                 'user' => $user,
                 'avatar_url' => asset('storage/' . $user->avatar), // <-- full HTTPS URL
@@ -106,69 +109,71 @@ class AuthController extends Controller
         ]);
     }
         public function registerAdmin(Request $req) {
-        // validation
-        $req->validate([
-            'name' => ['required','string','max:250'],
-            'avatar' => ['nullable','file','mimetypes:image/png,image/jpeg','max:2048'],
-            'email' => ['required','email','max:250'],
-            'password' => ['required','string','min:8','max:250','confirmed'],
-            'gender' => ['nullable','string','in:male,female,other'],
-        ]);
+            // validation
+            $req->validate([
+                'name' => ['required','string','max:250'],
+                'avatar' => ['nullable','file','mimetypes:image/png,image/jpeg','max:2048'],
+                'email' => ['required','email','max:250'],
+                'password' => ['required','string','min:8','max:250','confirmed'],
+                'gender' => ['nullable','string','in:male,female,other'],
+            ]);
 
-        $avatar = 'avatars/no_photo.jpg';
-        if ($req->hasFile('avatar')) {
-            $avatar = $req->file('avatar')->store('avatars', ['disk' => 'public']);
+            $avatar = 'admin/no_photo.jpg'; // default for admin
+            if ($req->hasFile('avatar')) {
+                $avatar = $req->file('avatar')->store('admin', ['disk' => 'public']);
+            }
+
+            $req->merge(['role_id' => 2]); // set admin role
+
+            $user = new User($req->only(['name', 'role_id', 'email', 'password', 'gender']));
+            $user->avatar = $avatar;
+            $user->save();
+
+            $token = $user->createToken($user->id)->plainTextToken;
+
+            return response()->json([
+                'result' => true,
+                'message' => 'Admin registered successfully',
+                'data' => [
+                    'user' => $user,
+                    'avatar_url' => asset('storage/' . $user->avatar),
+                    'token' => $token,
+                ]
+            ]);
         }
 
-        $req->merge(['role_id' => 2]); // set admin role
+        public function registerSuperAdmin(Request $req) {
+            // validation
+            $req->validate([
+                'name' => ['required','string','max:250'],
+                'avatar' => ['nullable','file','mimetypes:image/png,image/jpeg','max:2048'],
+                'email' => ['required','email','max:250'],
+                'password' => ['required','string','min:8','max:250','confirmed'],
+                'gender' => ['nullable','string','in:male,female,other'],
+            ]);
 
-        $user = new User($req->only(['name', 'role_id', 'email', 'password', 'gender']));
-        $user->avatar = $avatar;
-        $user->save();
+            $avatar = 'superAdmin/no_photo.jpg'; // default for super admin
+            if ($req->hasFile('avatar')) {
+                $avatar = $req->file('avatar')->store('superAdmin', ['disk' => 'public']);
+            }
 
-        $token = $user->createToken($user->id)->plainTextToken;
+            $req->merge(['role_id' => 3]); // set super admin role
 
-        return response()->json([
-            'result' => true,
-            'message' => 'Admin registered successfully',
-            'data' => [
-                'user' => $user,
-                'token' => $token,
-            ]
-        ]);
-    }
+            $user = new User($req->only(['name', 'role_id', 'email', 'password', 'gender']));
+            $user->avatar = $avatar;
+            $user->save();
 
-    public function registerSuperAdmin(Request $req) {
-        // validation
-        $req->validate([
-            'name' => ['required','string','max:250'],
-            'avatar' => ['nullable','file','mimetypes:image/png,image/jpeg','max:2048'],
-            'email' => ['required','email','max:250'],
-            'password' => ['required','string','min:8','max:250','confirmed'],
-            'gender' => ['nullable','string','in:male,female,other'],
-        ]);
+            $token = $user->createToken($user->id)->plainTextToken;
 
-        $avatar = 'avatars/no_photo.jpg';
-        if ($req->hasFile('avatar')) {
-            $avatar = $req->file('avatar')->store('avatars', ['disk' => 'public']);
+            return response()->json([
+                'result' => true,
+                'message' => 'Super Admin registered successfully',
+                'data' => [
+                    'user' => $user,
+                    'avatar_url' => asset('storage/' . $user->avatar),
+                    'token' => $token,
+                ]
+            ]);
         }
 
-        $req->merge(['role_id' => 3]); // set super admin role
-
-        $user = new User($req->only(['name', 'role_id', 'email', 'password', 'gender']));
-        $user->avatar = $avatar;
-        $user->save();
-
-        $token = $user->createToken($user->id)->plainTextToken;
-
-        return response()->json([
-            'result' => true,
-            'message' => 'Super Admin registered successfully',
-            'data' => [
-                'user' => $user,
-                'token' => $token,
-            ]
-        ]);
     }
-
-}
