@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Role extends Model
 {
@@ -14,5 +15,16 @@ class Role extends Model
     // set up relationship
     public function users() {
         return $this->hasMany(User::class, 'role_id', 'id');
+    }
+
+    public function run()
+    {
+        DB::table('roles')->truncate(); // This clears the table
+
+        Role::updateOrInsert(
+            ['id' => 1],
+            ['name' => 'Regular User']
+        );
+        // ...existing seeding code...
     }
 }
