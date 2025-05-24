@@ -13,6 +13,7 @@ use App\Http\Middleware\IsSuperAdmin;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\ServiceTypeController;
+use App\Http\Controllers\ServiceController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/register-admin', [AuthController::class, 'registerAdmin']);
@@ -100,12 +101,20 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
 
     // Super admin routes
     Route::middleware(['auth:sanctum',IsSuperAdmin::class])->group(function () {
+
     // Service type management
     Route::get('/service-types', [ServiceTypeController::class, 'index']);
     Route::post('/service-types', [ServiceTypeController::class, 'store']);
     Route::get('/service-types/{id}', [ServiceTypeController::class, 'show']);
     Route::put('/service-types/{id}', [ServiceTypeController::class, 'update']);
     Route::delete('/service-types/{id}', [ServiceTypeController::class, 'destroy']);
+    
+    // Service management
+    Route::get('/services', [ServiceController::class, 'index']);
+    Route::post('/services', [ServiceController::class, 'store']);
+    Route::get('/services/{id}', [ServiceController::class, 'show']);
+    Route::put('/services/{id}', [ServiceController::class, 'update']);
+    Route::delete('/services/{id}', [ServiceController::class, 'destroy']);
     
     // User management
     Route::get('/superAdmin/regular-user', [SuperAdminController::class, 'getUsers']);
