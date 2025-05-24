@@ -64,13 +64,20 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     Route::post('/profile', [UserController::class, 'updateProfile']);
     Route::put('/change-password', [UserController::class, 'changePassword']);
 
-    // Booking routes
+    // Booking Rooms routes
     Route::get('/bookings', [BookingController::class, 'index']);
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::get('/bookings/{id}', [BookingController::class, 'show']);
     Route::delete('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
     Route::put('/bookings/{id}/update', [BookingController::class, 'update']);
     Route::get('/cancellation-policy', [BookingController::class, 'getCancellationPolicy']);
+
+    // Booking services routes
+    Route::get('/bookingServices', [BookingController::class, 'index']);
+    Route::post('/bookingServices', [BookingController::class, 'store']);
+    Route::get('/bookingServices/{id}', [BookingController::class, 'show']);
+    Route::put('/bookingServices/{id}/update', [BookingController::class, 'update']);
+    Route::delete('/bookingServices/{id}/cancel', [BookingController::class, 'cancel']);
 
     // Rating routes
     Route::post('/ratings', [RatingController::class, 'store']);
@@ -115,7 +122,7 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     Route::get('/services/{id}', [ServiceController::class, 'show']);
     Route::put('/services/{id}', [ServiceController::class, 'update']);
     Route::delete('/services/{id}', [ServiceController::class, 'destroy']);
-    
+
     // User management
     Route::get('/superAdmin/regular-user', [SuperAdminController::class, 'getUsers']);
     Route::put('/superAdmin/regular-user/{user}', [SuperAdminController::class, 'updateUser']);

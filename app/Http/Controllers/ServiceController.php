@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 use App\Models\Service;
-
 use Illuminate\Http\Request;
 
 class ServiceController extends Controller
@@ -13,7 +12,11 @@ class ServiceController extends Controller
     public function index()
     {
         $services = Service::all();
-        return response()->json($services);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Services retrieved successfully.',
+            'data' => $services
+        ]);
     }
 
     /**
@@ -26,11 +29,15 @@ class ServiceController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric',
             'available' => 'boolean',
-            'service_type_id' => 'required|exists:service_types,id', // Validate service_type_id
+            'service_type_id' => 'required|exists:service_types,id',
         ]);
 
         $service = Service::create($validatedData);
-        return response()->json($service, 201);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Service created successfully.',
+            'data' => $service
+        ], 201);
     }
 
     /**
@@ -40,9 +47,17 @@ class ServiceController extends Controller
     {
         $service = Service::find($id);
         if (!$service) {
-            return response()->json(['message' => 'Service not found'], 404);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Service not found',
+                'data' => null
+            ], 404);
         }
-        return response()->json($service);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Service retrieved successfully.',
+            'data' => $service
+        ]);
     }
 
     /**
@@ -52,7 +67,11 @@ class ServiceController extends Controller
     {
         $service = Service::find($id);
         if (!$service) {
-            return response()->json(['message' => 'Service not found'], 404);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Service not found',
+                'data' => null
+            ], 404);
         }
 
         $validatedData = $request->validate([
@@ -64,7 +83,11 @@ class ServiceController extends Controller
         ]);
 
         $service->update($validatedData);
-        return response()->json($service);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Service updated successfully.',
+            'data' => $service
+        ]);
     }
 
     /**
@@ -74,10 +97,18 @@ class ServiceController extends Controller
     {
         $service = Service::find($id);
         if (!$service) {
-            return response()->json(['message' => 'Service not found'], 404);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Service not found',
+                'data' => null
+            ], 404);
         }
 
         $service->delete();
-        return response()->json(['message' => 'Service deleted successfully']);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Service deleted successfully.',
+            'data' => null
+        ]);
     }
 }
