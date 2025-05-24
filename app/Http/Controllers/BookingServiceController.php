@@ -27,23 +27,12 @@ class BookingServiceController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
+            'booking_id' => 'required|exists:bookings,id',
             'service_id' => 'required|exists:services,id',
             'service_type_id' => 'required|exists:service_types,id',
             'quantity' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0',
         ]);
-
-        // Create a new booking with default/null values
-        $booking = \App\Models\Booking::create([
-            // Set default or nullable values as needed
-            'check_in_date' => now(),
-            'check_out_date' => now(),
-            'room_ids' => null,
-            'payment_method' => null,
-            'total_payment' => 0,
-        ]);
-
-        $validatedData['booking_id'] = $booking->id;
 
         $bookingService = BookingService::create($validatedData);
         return response()->json([

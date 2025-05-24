@@ -52,4 +52,11 @@ class Booking extends Model
     {
         return $this->hasOne(Rating::class);
     }
+    /**
+     * Get the booking services for the booking.
+     */
+    public function bookingServices()
+    {
+        return $this->hasMany(BookingService::class);
+    }
 }

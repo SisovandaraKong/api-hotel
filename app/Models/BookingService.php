@@ -7,17 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class BookingService extends Model
 {
     protected $fillable = [
-        'booking_id',
         'service_id',
         'service_type_id',
         'quantity',
         'price',
     ];
-
-    public function booking()
-    {
-        return $this->belongsTo(Booking::class);
-    }
+    
 
     public function service()
     {
@@ -27,5 +22,9 @@ class BookingService extends Model
     public function serviceType()
     {
         return $this->belongsTo(ServiceType::class);
+    }
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class);
     }
 }

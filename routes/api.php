@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\ServiceTypeController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\BookingServiceController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/register-admin', [AuthController::class, 'registerAdmin']);
@@ -73,11 +74,11 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     Route::get('/cancellation-policy', [BookingController::class, 'getCancellationPolicy']);
 
     // Booking services routes
-    Route::get('/bookingServices', [BookingController::class, 'index']);
-    Route::post('/bookingServices', [BookingController::class, 'store']);
-    Route::get('/bookingServices/{id}', [BookingController::class, 'show']);
-    Route::put('/bookingServices/{id}/update', [BookingController::class, 'update']);
-    Route::delete('/bookingServices/{id}/cancel', [BookingController::class, 'cancel']);
+    Route::get('/bookingServices', [BookingServiceController::class, 'getAllBookingServices']);
+    Route::post('/bookingServices', [BookingServiceController::class, 'createBookingService']);
+    Route::get('/bookingServices/{id}', [BookingServiceController::class, 'getBookingService']);
+    Route::put('/bookingServices/{id}', [BookingServiceController::class, 'updateBookingService']);
+    Route::delete('/bookingServices/{id}', [BookingServiceController::class, 'deleteBookingService']);
 
     // Rating routes
     Route::post('/ratings', [RatingController::class, 'store']);

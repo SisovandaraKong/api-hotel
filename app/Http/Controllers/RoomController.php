@@ -280,16 +280,16 @@ class RoomController extends Controller
 
     /**
      * Remove the specified room from storage.
-     * Only accessible by admin and superadmin.
+     * Only accessible by admin (role_id = 2).
      */
     public function destroy(Request $req, $id)
     {
-        // Check if user is admin or super admin
+        // Check if user is admin (role_id == 2)
         $user = $req->user('sanctum');
-        if (!$user || !$user->isAdmin()) {
+        if (!$user || $user->role_id != 2) {
             return response()->json([
                 'result' => false,
-                'message' => 'Unauthorized. Only admin and super admin can delete rooms.',
+                'message' => 'Unauthorized. Only admin can delete rooms.',
                 'data' => null
             ], 403);
         }
