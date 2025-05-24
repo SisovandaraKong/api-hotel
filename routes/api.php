@@ -67,7 +67,9 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     Route::get('/bookings', [BookingController::class, 'index']);
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::get('/bookings/{id}', [BookingController::class, 'show']);
-    Route::put('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
+    Route::delete('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
+    Route::put('/bookings/{id}/update', [BookingController::class, 'update']);
+    Route::get('/cancellation-policy', [BookingController::class, 'getCancellationPolicy']);
 
     // Rating routes
     Route::post('/ratings', [RatingController::class, 'store']);
