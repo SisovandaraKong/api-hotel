@@ -455,9 +455,20 @@ class BookingController extends Controller
         }
     }
 
-    // Create a booking service
+    /**
+     * Store a newly created booking service in storage.
+     */
     public function createBookingService(Request $req)
     {
+        $user = $req->user('sanctum');
+        if (!$user) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorized',
+                'data' => null
+            ], 401);
+        }
+
         // Validate request
         $req->validate([
             'booking_id' => ['required', 'integer', 'exists:bookings,id'],
@@ -467,20 +478,52 @@ class BookingController extends Controller
             'price' => ['required', 'numeric', 'min:0'],
         ]);
 
-        // Create booking service
-        $bookingService = new BookingService();
-        $bookingService->booking_id = $req->input('booking_id');
-        $bookingService->service_id = $req->input('service_id');
-        $bookingService->service_type_id = $req->input('service_type_id');
-        $bookingService->quantity = $req->input('quantity');
-        $bookingService->price = $req->input('price');
-        $bookingService->save();
+        // Check if user is authorized to add service to this booking
+        $booking = Booking::find($req->input('booking_id'));
+        if (!$booking) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Booking not found',
+                'data' => null
+            ], 404);
+        }
+        if ($user->role_id == 1 && $booking->user_id !== $user->id) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorized to add service to this booking',
+                'data' => null
+            ], 403);
+        }
 
-        return response()->json([
-            'result' => true,
-            'message' => 'Booking service created successfully',
-            'data' => $bookingService
-        ]);
+        DB::beginTransaction();
+        try {
+            // Create booking service
+            $bookingService = new BookingService();
+            $bookingService->booking_id = $req->input('booking_id');
+            $bookingService->service_id = $req->input('service_id');
+            $bookingService->service_type_id = $req->input('service_type_id');
+            $bookingService->quantity = $req->input('quantity');
+            $bookingService->price = $req->input('price');
+            $bookingService->save();
+
+            DB::commit();
+
+            // Optionally load relationships
+            $bookingService->load(['service', 'serviceType']);
+
+            return response()->json([
+                'result' => true,
+                'message' => 'Booking service created successfully',
+                'data' => $bookingService
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'result' => false,
+                'message' => 'Failed to create booking service: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
     }
     /**
      * Get booking services for a specific booking.
@@ -514,22 +557,236 @@ class BookingController extends Controller
             'data' => $bookingServices
         ]);
     }
+
+    
+
     /**
-     * Update a booking service.
+     * Store a newly created booking with service in storage.
      */
-    public function updateBookingService(Request $req, $id)
+    public function createBookingWithService(Request $req)
     {
         $user = $req->user('sanctum');
+        if (!$user) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorized',
+                'data' => null
+            ], 401);
+        }
+        // Only allow regular users
+        if ($user->role_id != 1) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Only regular users can create booking with service',
+                'data' => null
+            ], 403);
+        }
 
-        // Validate booking service exists
-        $req->merge(['id' => $id]);
+        // Validate booking and service data
         $req->validate([
-            'id' => ['required', 'integer', 'min:1', 'exists:booking_services,id'],
-            'quantity' => ['sometimes', 'integer', 'min:1'],
-            'price' => ['sometimes', 'numeric', 'min:0'],
+            // Booking fields
+            'check_in_date' => ['required', 'date', 'after_or_equal:today'],
+            'check_out_date' => ['required', 'date', 'after:check_in_date'],
+            'room_ids' => ['required', 'array', 'min:1'],
+            'room_ids.*' => ['integer', 'exists:rooms,id'],
+            'payment_method' => ['required', 'string', 'in:credit_card,paypal,cash'],
+            'total_payment' => ['required', 'numeric', 'min:0'],
+            // Booking service fields
+            'service_id' => ['required', 'integer', 'exists:services,id'],
+            'service_type_id' => ['required', 'integer', 'exists:service_types,id'],
+            'quantity' => ['required', 'integer', 'min:1'],
+            'price' => ['required', 'numeric', 'min:0'],
         ]);
 
-        // Get booking service
+        $checkInDate = $req->input('check_in_date');
+        $checkOutDate = $req->input('check_out_date');
+        $roomIds = $req->input('room_ids');
+
+
+        DB::beginTransaction();
+        try {
+            // Create booking
+            $booking = new \App\Models\Booking();
+            $booking->user_id = $user->id;
+            $booking->booking_status = 'pending';
+            $booking->check_in_date = $checkInDate;
+            $booking->check_out_date = $checkOutDate;
+            $booking->save();
+
+            // Create booking rooms
+            foreach ($roomIds as $roomId) {
+                $bookingRoom = new \App\Models\BookingRoom();
+                $bookingRoom->booking_id = $booking->id;
+                $bookingRoom->room_id = $roomId;
+                $bookingRoom->save();
+            }
+
+            // Create payment
+            $payment = new \App\Models\Payment();
+            $payment->booking_id = $booking->id;
+            $payment->total_payment = $req->input('total_payment');
+            $payment->method_payment = $req->input('payment_method');
+            $payment->date_payment = now();
+            $payment->save();
+
+            // Create booking service
+            $bookingService = new \App\Models\BookingService();
+            $bookingService->booking_id = $booking->id;
+            $bookingService->service_id = $req->input('service_id');
+            $bookingService->service_type_id = $req->input('service_type_id');
+            $bookingService->quantity = $req->input('quantity');
+            $bookingService->price = $req->input('price');
+            $bookingService->save();
+
+            DB::commit();
+
+            // Load relationships
+            $booking->load(['bookingRooms.room.roomType', 'payment']);
+            $bookingService->load(['service', 'serviceType']);
+
+            return response()->json([
+                'result' => true,
+                'message' => 'Booking and booking service created successfully',
+                'data' => [
+                    'booking' => new \App\Http\Resources\BookingResource($booking),
+                    'booking_service' => [
+                        'id' => $bookingService->id,
+                        'booking_id' => $bookingService->booking_id,
+                        'service_id' => $bookingService->service_id,
+                        'service_type_id' => $bookingService->service_type_id,
+                        'quantity' => $bookingService->quantity,
+                        'price' => $bookingService->price,
+                    ]
+                ]
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'result' => false,
+                'message' => 'Failed to create booking and service: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+        // Get all booking services
+    public function getAllBookingServices(Request $req)
+    {
+        $user = $req->user('sanctum');
+        if (!$user) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorized',
+                'data' => null
+            ], 401);
+        }
+        // Only allow regular users
+        if ($user->role_id != 1) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Only regular users can view all booking services',
+                'data' => null
+            ], 403);
+        }
+
+        $services = BookingService::select([
+                'id',
+                'booking_id',
+                'service_id',
+                'service_type_id',
+                'quantity',
+                'price'
+            ])
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return response()->json([
+            'result' => true,
+            'message' => 'All booking services retrieved successfully',
+            'data' => $services
+        ]);
+    }
+
+/**
+ * Delete a booking service by its ID.
+ */
+public function deleteBookingServiceById(Request $req, $id)
+{
+    $user = $req->user('sanctum');
+    if (!$user) {
+        return response()->json([
+            'result' => false,
+            'message' => 'Unauthorized',
+            'data' => null
+        ], 401);
+    }
+    // Only allow regular users
+    if ($user->role_id != 1) {
+        return response()->json([
+            'result' => false,
+            'message' => 'Only regular users can delete booking services',
+            'data' => null
+        ], 403);
+    }
+
+    // Find booking service by id
+    $bookingService = BookingService::find($id);
+
+    if (!$bookingService) {
+        return response()->json([
+            'result' => false,
+            'message' => 'Booking service not found',
+            'data' => null
+        ], 404);
+    }
+
+    // Check if the booking belongs to the user
+    if ($bookingService->booking->user_id !== $user->id) {
+        return response()->json([
+            'result' => false,
+            'message' => 'Unauthorized to delete this booking service',
+            'data' => null
+        ], 403);
+    }
+
+    $bookingService->delete();
+
+    return response()->json([
+        'result' => true,
+        'message' => 'Booking service deleted successfully',
+        'data' => null
+    ]);
+}
+
+        /**
+     * Update a booking service by id
+     */
+    public function updateBookingServiceById(Request $req, $id)
+    {
+        $user = $req->user('sanctum');
+        if (!$user) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorized',
+                'data' => null
+            ], 401);
+        }
+        // Only allow regular users
+        if ($user->role_id != 1) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Only regular users can update booking services',
+                'data' => null
+            ], 403);
+        }
+
+        // Validate request
+        $req->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+            'price' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        // Find booking service by id
         $bookingService = BookingService::find($id);
 
         if (!$bookingService) {
@@ -540,8 +797,8 @@ class BookingController extends Controller
             ], 404);
         }
 
-        // Only allow owner or admin/superadmin
-        if ($user->role_id == 1 && $bookingService->booking->user_id !== $user->id) {
+        // Check if the booking belongs to the user
+        if ($bookingService->booking->user_id !== $user->id) {
             return response()->json([
                 'result' => false,
                 'message' => 'Unauthorized to update this booking service',
@@ -549,14 +806,9 @@ class BookingController extends Controller
             ], 403);
         }
 
-        // Update fields if provided
-        if ($req->has('quantity')) {
-            $bookingService->quantity = $req->input('quantity');
-        }
-        if ($req->has('price')) {
-            $bookingService->price = $req->input('price');
-        }
-        
+        // Update booking service details
+        $bookingService->quantity = $req->input('quantity');
+        $bookingService->price = $req->input('price');
         $bookingService->save();
 
         return response()->json([
@@ -565,21 +817,31 @@ class BookingController extends Controller
             'data' => $bookingService
         ]);
     }
+
     /**
-     * Delete a booking service.
+     * Get booking service by id
      */
-    public function deleteBookingService(Request $req, $id)
+    public function getBookingServiceById(Request $req, $id)
     {
         $user = $req->user('sanctum');
+        if (!$user) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorized',
+                'data' => null
+            ], 401);
+        }
+        // Only allow regular users
+        if ($user->role_id != 1) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Only regular users can view booking service details',
+                'data' => null
+            ], 403);
+        }
 
-        // Validate booking service exists
-        $req->merge(['id' => $id]);
-        $req->validate([
-            'id' => ['required', 'integer', 'min:1', 'exists:booking_services,id']
-        ]);
-
-        // Get booking service
-        $bookingService = BookingService::find($id);
+        // Find booking service by id
+        $bookingService = BookingService::with(['service', 'serviceType'])->find($id);
 
         if (!$bookingService) {
             return response()->json([
@@ -589,50 +851,10 @@ class BookingController extends Controller
             ], 404);
         }
 
-        // Only allow owner or admin/superadmin
-        if ($user->role_id == 1 && $bookingService->booking->user_id !== $user->id) {
-            return response()->json([
-                'result' => false,
-                'message' => 'Unauthorized to delete this booking service',
-                'data' => null
-            ], 403);
-        }
-
-        // Delete booking service
-        $bookingService->delete();
-
         return response()->json([
             'result' => true,
-            'message' => 'Booking service deleted successfully',
-            'data' => null
+            'message' => 'Booking service retrieved successfully',
+            'data' => $bookingService
         ]);
     }
-    
-    // Get all booking services
-    public function getAllBookingServices(Request $req)
-    {
-        $user = $req->user('sanctum');
-
-        // Validate user role
-        if (!$user || !in_array($user->role_id, [2, 3])) {
-            return response()->json([
-                'result' => false,
-                'message' => 'Unauthorized',
-                'data' => null
-            ], 401);
-        }
-
-        // Get all booking services with relationships
-        $bookingServices = BookingService::with(['service', 'serviceType', 'booking.user'])
-            ->get();
-
-        return response()->json([
-            'result' => true,
-            'message' => 'Booking services retrieved successfully',
-            'data' => $bookingServices
-        ]);
-    }
-
-    
-
 }

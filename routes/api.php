@@ -74,11 +74,11 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     Route::get('/cancellation-policy', [BookingController::class, 'getCancellationPolicy']);
 
     // Booking services routes
-    Route::get('/bookingServices', [BookingServiceController::class, 'getAllBookingServices']);
-    Route::post('/bookingServices', [BookingServiceController::class, 'createBookingService']);
-    Route::get('/bookingServices/{id}', [BookingServiceController::class, 'getBookingService']);
-    Route::put('/bookingServices/{id}', [BookingServiceController::class, 'updateBookingService']);
-    Route::delete('/bookingServices/{id}', [BookingServiceController::class, 'deleteBookingService']);
+    Route::get('/bookingServices', [BookingController::class, 'getAllBookingServices']);
+    Route::post('/bookingServices', [BookingController::class, 'createBookingWithService']);
+    Route::get('/bookingServices/{id}', [BookingController::class, 'getBookingServiceById']);
+    Route::put('/bookingServices/{id}', [BookingController::class, 'updateBookingServiceById']);
+    Route::delete('/bookingServices/{id}', [BookingController::class, 'deleteBookingServiceById']);
 
     // Rating routes
     Route::post('/ratings', [RatingController::class, 'store']);
