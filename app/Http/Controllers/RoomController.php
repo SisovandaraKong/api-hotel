@@ -362,4 +362,16 @@ class RoomController extends Controller
             'data' => $roomTypes
         ]);
     }
+
+    //get all rooms
+    public function rooms(Request $req)
+    {
+        $rooms = Room::with(['roomType', 'images'])->get();
+
+        return response()->json([
+            'result' => true,
+            'message' => 'Rooms retrieved successfully',
+            'data' => RoomResource::collection($rooms)
+        ]);
+    }
 }
