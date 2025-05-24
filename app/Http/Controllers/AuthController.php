@@ -85,6 +85,7 @@ class AuthController extends Controller
         ]);
     }
 
+    //logout
     public function logout(Request $req) {
         $user = $req->user('sanctum');
         if ($user && $user->currentAccessToken()) {

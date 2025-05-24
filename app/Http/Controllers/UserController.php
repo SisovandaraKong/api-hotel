@@ -125,4 +125,16 @@ class UserController extends Controller
             'data' => UserResource::collection($users)
         ]);
     }
+    // Get all regular users
+        // Get all regular users.
+
+        public function regularUsers()
+    {
+        $users = User::where('role_id', 1)->get();
+        return response()->json([
+            'result' => true,
+            'message' => 'Users retrieved successfully',
+            'data' => UserResource::collection($users)
+        ]);
+    }
 }

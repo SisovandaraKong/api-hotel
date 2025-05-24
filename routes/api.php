@@ -44,6 +44,12 @@ Route::get('/super-admins', [SuperAdminController::class, 'getSuperAdmins']);
 // Get all room types
 Route::get('/room-types', [RoomTypeController::class, 'index']);
 
+// Get all rooms
+Route::get('/rooms', [RoomController::class, 'rooms']);
+
+// Get all regular users
+Route::get('/regularUsers', [UserController::class, 'regularUsers']);
+
 
 // Protected routes - require login
 Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
@@ -72,10 +78,10 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     // Admin routes
     Route::middleware(['auth:sanctum',IsAdmin::class])->group(function () {
         // Room management
-        Route::get('/rooms', [RoomController::class, 'index']);
-        Route::post('/rooms', [RoomController::class, 'store']);
-        Route::put('/rooms/{id}', [RoomController::class, 'update']);
-        Route::delete('/rooms/{id}', [RoomController::class, 'destroy']);
+        Route::get('/admin/rooms', [RoomController::class, 'index']);
+        Route::post('/admin/rooms', [RoomController::class, 'store']);
+        Route::put('/admin/rooms/{id}', [RoomController::class, 'update']);
+        Route::delete('/admin/rooms/{id}', [RoomController::class, 'destroy']);
 
         // Room type management
         Route::post('/room-types', [RoomTypeController::class, 'store']);
@@ -92,12 +98,21 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
 
     // Super admin routes
     Route::middleware(['auth:sanctum',IsSuperAdmin::class])->group(function () {
-        // Service type management
+    // Service type management
     Route::get('/service-types', [ServiceTypeController::class, 'index']);
     Route::post('/service-types', [ServiceTypeController::class, 'store']);
     Route::get('/service-types/{id}', [ServiceTypeController::class, 'show']);
     Route::put('/service-types/{id}', [ServiceTypeController::class, 'update']);
     Route::delete('/service-types/{id}', [ServiceTypeController::class, 'destroy']);
-
+    
+    // User management
+    Route::get('/superAdmin/regular-user', [SuperAdminController::class, 'getUsers']);
+    Route::put('/superAdmin/regular-user/{user}', [SuperAdminController::class, 'updateUser']);
+    Route::delete('/superAdmin/regular-user/{user}', [SuperAdminController::class, 'deleteUser']);
+    
+    // Admin management
+    Route::get('/superAdmin/admins', [SuperAdminController::class, 'getAllAdmins']);
+    Route::put('/superAdmin/admin/{id}', [SuperAdminController::class, 'updateAdmin']);
+    Route::delete('/superAdmin/admin/{id}', [SuperAdminController::class, 'deleteAdmin']);
     });
 });
