@@ -16,6 +16,7 @@ use App\Http\Controllers\ServiceTypeController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\BookingServiceController;
 
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/register-admin', [AuthController::class, 'registerAdmin']);
 Route::post('/register-super-admin', [AuthController::class, 'registerSuperAdmin']);
@@ -51,6 +52,11 @@ Route::get('/rooms', [RoomController::class, 'rooms']);
 
 // Get all regular users
 Route::get('/regularUsers', [UserController::class, 'regularUsers']);
+
+// Get regular user by ID
+Route::get('/regularUsers/{id}', [UserController::class, 'getRegularUserById']);
+
+
 
 
 // Protected routes - require login
@@ -105,6 +111,17 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
 
         // User management (admin)
         Route::get('/admin/users', [AdminController::class, 'getAllUsers']);
+        Route::get('/admin/users/{id}', [AdminController::class, 'getRegularUserById']);
+
+        // Booking Rooms routes
+        Route::get('/admin/booking-rooms', [AdminController::class, 'getAllBookingRooms']);
+        Route::delete('/admin/booking-rooms/{id}/cancel', [AdminController::class, 'cancelBookingRoom']);
+        Route::put('/admin/bookings-rooms/{id}', [AdminController::class, 'updateBookingByAdmin']);
+
+        // Booking Services routes
+        Route::get('/admin/booking-services', [AdminController::class, 'getAllBookingServices']);
+        Route::delete('/admin/booking-services/{id}', [AdminController::class, 'deleteBookingServiceById']);
+        Route::put('/admin/booking-services/{id}', [AdminController::class, 'updateBookingServiceById']);
     });
 
     // Super admin routes
@@ -128,10 +145,21 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     Route::get('/superAdmin/regular-user', [SuperAdminController::class, 'getUsers']);
     Route::put('/superAdmin/regular-user/{user}', [SuperAdminController::class, 'updateUser']);
     Route::delete('/superAdmin/regular-user/{user}', [SuperAdminController::class, 'deleteUser']);
-    
+    Route::get('/superAdmin/regular-user/{id}', [SuperAdminController::class, 'getRegularUserById']);
+
     // Admin management
     Route::get('/superAdmin/admins', [SuperAdminController::class, 'getAllAdmins']);
     Route::put('/superAdmin/admin/{id}', [SuperAdminController::class, 'updateAdmin']);
     Route::delete('/superAdmin/admin/{id}', [SuperAdminController::class, 'deleteAdmin']);
+
+    // Booking rooms routes
+    Route::get('/super-admin/booking-rooms', [SuperAdminController::class, 'getAllBookingRooms']);
+    Route::delete('/super-admin/booking-rooms/{id}/cancel', [SuperAdminController::class, 'cancelBookingRoom']);
+    Route::put('/super-admin/bookings-rooms/{id}', [SuperAdminController::class, 'updateBookingBySuperAdmin']);
+
+    // Booking services routes
+    Route::get('/super-admin/booking-services', [SuperAdminController::class, 'getAllBookingServices']);
+    Route::delete('/super-admin/booking-services/{id}', [SuperAdminController::class, 'deleteBookingServiceById']);
+    Route::put('/super-admin/booking-services/{id}', [SuperAdminController::class, 'updateBookingServiceById']);
     });
 });

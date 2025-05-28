@@ -137,4 +137,22 @@ class UserController extends Controller
             'data' => UserResource::collection($users)
         ]);
     }
+
+    // Get regular user by id
+    public function getRegularUserById($id)
+    {
+        $user = User::where('id', $id)->where('role_id', 1)->first();
+        if (!$user) {
+            return response()->json([
+                'result' => false,
+                'message' => 'User not found',
+                'data' => null
+            ], 404);
+        }
+        return response()->json([
+            'result' => true,
+            'message' => 'User retrieved successfully',
+            'data' => new UserResource($user)
+        ]);
+    }
 }
