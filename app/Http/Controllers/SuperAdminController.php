@@ -592,4 +592,45 @@ class SuperAdminController extends Controller
             'data' => new UserResource($user)
         ]);
     }
+
+    // Super admin confirm booking room by id
+    public function confirmBookingRoomBySuperAdmin(Request $request, $id)
+    {
+        $superAdmin = $request->user();
+        if (!$superAdmin || $superAdmin->role_id != 3) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Only super admins can confirm booking rooms',
+                'data' => null
+            ], 403);
+        }
+
+        $booking = Booking::find($id);
+        if (!$booking) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Booking room not found',
+                'data' => null
+            ], 404);
+        }
+
+        // Only allow confirming pending bookings
+        if ($booking->booking_status !== 'pending') {
+            return response()->json([
+                'result' => false,
+                'message' => 'Booking room is not in pending status',
+                'data' => null
+            ], 422);
+        }
+
+        // Update booking status to confirmed
+        $booking->booking_status = 'confirmed';
+        $booking->save();
+
+        return response()->json([
+            'result' => true,
+            'message' => 'Booking room confirmed successfully',
+            'data' => new BookingResource($booking)
+        ]);
+    }
 }

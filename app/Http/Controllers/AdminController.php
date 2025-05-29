@@ -17,6 +17,7 @@ use App\Models\BookingService; // Add this at the top
 use App\Models\Room;
 use Illuminate\Support\Facades\DB;
 
+
 class AdminController extends Controller
 {
     /**
@@ -822,6 +823,47 @@ class AdminController extends Controller
             'result' => true,
             'message' => 'User retrieved successfully',
             'data' => new UserResource($user)
+        ]);
+    }
+
+    // Admin confirm booking room by id
+    public function confirmBookingRoom(Request $request, $id)
+    {
+        $admin = $request->user();
+        if (!$admin || $admin->role_id != 2) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Only admins can confirm booking rooms',
+                'data' => null
+            ], 403);
+        }
+
+        $booking = Booking::find($id);
+        if (!$booking) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Booking room not found',
+                'data' => null
+            ], 404);
+        }
+
+        // Only allow confirming pending bookings
+        if ($booking->booking_status !== 'pending') {
+            return response()->json([
+                'result' => false,
+                'message' => 'Booking room is not in pending status',
+                'data' => null
+            ], 422);
+        }
+
+        // Update booking status to confirmed
+        $booking->booking_status = 'confirmed';
+        $booking->save();
+
+        return response()->json([
+            'result' => true,
+            'message' => 'Booking room confirmed successfully',
+            'data' => new BookingResource($booking)
         ]);
     }
 }

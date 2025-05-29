@@ -57,8 +57,6 @@ Route::get('/regularUsers', [UserController::class, 'regularUsers']);
 Route::get('/regularUsers/{id}', [UserController::class, 'getRegularUserById']);
 
 
-
-
 // Protected routes - require login
 Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     // Auth routes
@@ -122,6 +120,9 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
         Route::get('/admin/booking-services', [AdminController::class, 'getAllBookingServices']);
         Route::delete('/admin/booking-services/{id}', [AdminController::class, 'deleteBookingServiceById']);
         Route::put('/admin/booking-services/{id}', [AdminController::class, 'updateBookingServiceById']);
+
+        // Confirm booking rooms
+        Route::put('/admin/booking-rooms/{id}/confirm', [AdminController::class, 'confirmBookingRoom']);
     });
 
     // Super admin routes
@@ -161,5 +162,8 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     Route::get('/super-admin/booking-services', [SuperAdminController::class, 'getAllBookingServices']);
     Route::delete('/super-admin/booking-services/{id}', [SuperAdminController::class, 'deleteBookingServiceById']);
     Route::put('/super-admin/booking-services/{id}', [SuperAdminController::class, 'updateBookingServiceById']);
+
+    // Confirm booking rooms
+    Route::put('/super-admin/booking-rooms/{id}/confirm', [SuperAdminController::class, 'confirmBookingRoomBySuperAdmin']);
     });
 });
