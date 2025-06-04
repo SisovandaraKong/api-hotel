@@ -15,6 +15,7 @@ use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\ServiceTypeController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\BookingServiceController;
+use App\Http\Controllers\ImageUploadController;
 
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -55,6 +56,11 @@ Route::get('/regularUsers', [UserController::class, 'regularUsers']);
 
 // Get regular user by ID
 Route::get('/regularUsers/{id}', [UserController::class, 'getRegularUserById']);
+// Upload image
+Route::post('/upload-image', [ImageUploadController::class, 'uploadImage']);
+// Get all images
+Route::get('/images', [ImageUploadController::class, 'getAllImages']);
+
 
 
 // Protected routes - require login
