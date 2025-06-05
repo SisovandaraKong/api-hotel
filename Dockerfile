@@ -15,13 +15,15 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    libssl-dev \
     libsodium-dev \
     libpq-dev \
     default-mysql-client \
     default-libmysqlclient-dev \
     libjpeg62-turbo-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium
+    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium curl \
+     && docker-php-ext-enable openssl
 
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
@@ -53,6 +55,7 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libzip-dev \
     libpng-dev \
+    libssl-dev \
     libjpeg-dev \
     libfreetype6-dev \
     libsodium-dev \
@@ -61,7 +64,8 @@ RUN apt-get update && apt-get install -y \
     default-libmysqlclient-dev \
     libjpeg62-turbo-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium
+    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium curl \
+     && docker-php-ext-enable openssl
 
 # Set working directory
 WORKDIR /var/www/html
