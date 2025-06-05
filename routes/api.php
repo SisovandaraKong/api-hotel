@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\ServiceTypeController;
 use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\BookingServiceController;
+
 use App\Http\Controllers\ImageUploadController;
 
 

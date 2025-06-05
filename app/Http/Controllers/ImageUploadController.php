@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 class ImageUploadController extends Controller
@@ -23,10 +22,12 @@ class ImageUploadController extends Controller
     $path = $request->file('image')->store('images', 's3');
 
     return response()->json([
-        'path' => "https://romsaydev.s3.us-east-1.amazonaws.com/$path",
         'success' => true,
-        'msg' => 'Image uploaded successfully',
-    ]);
+        'message' => 'Image uploaded successfully.',
+        'data' => [
+            'url' => "https://romsaydev.s3.us-east-1.amazonaws.com/$path"
+        ]
+    ], 201); // 201 Created
 }
 
 // get all images
