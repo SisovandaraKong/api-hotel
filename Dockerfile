@@ -6,7 +6,7 @@ FROM php:8.2-fpm AS build
 # Install system dependencies, including curl and openssl for AWS SDK support
 RUN apt-get update && apt-get install -y \
     git \
-    curl \                      # Added: system curl for PHP curl extension & HTTP requests
+    curl \
     zip \
     unzip \
     libonig-dev \
@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
     default-mysql-client \
     default-libmysqlclient-dev \
     libjpeg62-turbo-dev \
-    openssl \                  # Added: system openssl for PHP openssl extension
+    openssl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
         pdo \
@@ -32,8 +32,8 @@ RUN apt-get update && apt-get install -y \
         gd \
         zip \
         sodium \
-        curl \                 # Added: PHP curl extension (required by AWS SDK)
-        openssl                # Added: PHP openssl extension (required by AWS SDK)
+        curl \
+        openssl
 
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
@@ -72,8 +72,8 @@ RUN apt-get update && apt-get install -y \
     default-mysql-client \
     default-libmysqlclient-dev \
     libjpeg62-turbo-dev \
-    curl \                    # Added: system curl for runtime
-    openssl \                 # Added: system openssl for runtime
+    curl \
+    openssl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
         pdo \
@@ -85,8 +85,8 @@ RUN apt-get update && apt-get install -y \
         gd \
         zip \
         sodium \
-        curl \               # Added: PHP curl extension runtime
-        openssl              # Added: PHP openssl extension runtime
+        curl \
+        openssl
 
 # Set working directory
 WORKDIR /var/www/html
