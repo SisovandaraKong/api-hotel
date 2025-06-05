@@ -33,7 +33,7 @@ class ImageUploadController extends Controller
 // get all images
 public function getAllImages()
 {
-    $files = Storage::files('images');
+    $files = Storage::files('public/images');
     $images = array_map(function ($file) {
             return "https://romsaydev.s3.us-east-1.amazonaws.com/$file";
         }, $files);
