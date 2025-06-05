@@ -4,7 +4,7 @@
 FROM php:8.2-fpm AS build
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y \
     git \
     curl \
     zip \
@@ -15,25 +15,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
-    libssl-dev \
     libsodium-dev \
     libpq-dev \
     default-mysql-client \
     default-libmysqlclient-dev \
     libjpeg62-turbo-dev \
-    libcurl4-openssl-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium \
-    && docker-php-ext-enable curl \
-    && rm -rf /var/lib/apt/lists/*
+    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium
 
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
 # Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y nodejs
 
 # Set working directory
 WORKDIR /var/www/html
@@ -52,13 +47,12 @@ RUN if [ -f package.json ]; then npm install && npm run build; fi
 # ==============================
 FROM php:8.2-fpm
 
-# Install runtime system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Copy system packages again for runtime
+RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
     libpng-dev \
-    libssl-dev \
     libjpeg-dev \
     libfreetype6-dev \
     libsodium-dev \
@@ -66,12 +60,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     default-mysql-client \
     default-libmysqlclient-dev \
     libjpeg62-turbo-dev \
-    libcurl4-openssl-dev \
-    curl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium \
-    && docker-php-ext-enable curl \
-    && rm -rf /var/lib/apt/lists/*
+    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium
 
 # Set working directory
 WORKDIR /var/www/html
@@ -81,6 +71,7 @@ COPY --from=build /var/www/html /var/www/html
 
 # Set correct permissions for Laravel storage and cache
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
 
 # Expose port
 EXPOSE 8000
