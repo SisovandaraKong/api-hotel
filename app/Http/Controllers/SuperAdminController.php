@@ -73,7 +73,7 @@ class SuperAdminController extends Controller
 
         // Handle avatar upload if present
         if ($request->hasFile('avatar')) {
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $avatarPath = $request->file('avatar')->storePublicly('public/superAdmins', 's3');
             $data['avatar'] = $avatarPath;
         }
 
@@ -144,7 +144,7 @@ class SuperAdminController extends Controller
 
         // Handle avatar upload if present
         if ($request->hasFile('avatar')) {
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $avatarPath = $request->file('avatar')->storePublicly('public/superAdmins', 's3');
             $data['avatar'] = $avatarPath;
         }
 
