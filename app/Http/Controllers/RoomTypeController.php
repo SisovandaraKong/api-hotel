@@ -47,7 +47,7 @@ class RoomTypeController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('room_types', 'public');
+            $imagePath = $request->file('image')->storePublicly('public/room_types_images', ['disk' => 's3']);
         }
 
         $roomType = RoomType::create([
@@ -121,8 +121,7 @@ class RoomTypeController extends Controller
 
         $imagePath = $roomType->image;
         if ($request->hasFile('image')) {
-            // Optionally delete old image here
-            $imagePath = $request->file('image')->store('room_types', 'public');
+            $imagePath = $request->file('image')->storePublicly('public/room_types_images', ['disk' => 's3']);
         }
 
         $roomType->update([

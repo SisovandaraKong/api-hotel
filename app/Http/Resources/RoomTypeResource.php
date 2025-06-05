@@ -15,7 +15,7 @@ class RoomTypeResource extends JsonResource
             'price' => $this->price,
             'description' => $this->description,
             'capacity' => $this->capacity,
-            'image_url' => $this->image ? asset('storage/' . $this->image) : null,
+            'image_url' => 'https://romsaydev.s3.us-east-1.amazonaws.com/' . $this->image,
         ];
     }
 }

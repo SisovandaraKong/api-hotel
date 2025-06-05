@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
+
+
 
 class AuthController extends Controller
 {
@@ -20,9 +23,9 @@ class AuthController extends Controller
         ]);
 
         // store avatar
-        $avatar = 'avatars/no_photo.jpg'; // set default avatar
+        $avatar = 'public/users/no_photo.jpg'; // set default avatar
         if ($req->hasFile('avatar')) {
-            $avatar = $req->file('avatar')->store('avatars', ['disk' => 'public']);
+            $avatar = $req->file('avatar')->storePublicly('public/users', ['disk' => 's3']);
         }
 
         $req->merge(['role_id' => 1]); // <-- set default role_id for normal user
@@ -40,7 +43,7 @@ class AuthController extends Controller
             'message' => 'User registered successfully',
             'data' => [
                 'user' => $user,
-                'avatar_url' => asset('storage/' . $user->avatar), // <-- full HTTPS URL
+                'avatar_url' => 'https://romsaydev.s3.us-east-1.amazonaws.com/' . $user->avatar,
                 'token' => $token,
             ]
         ]);
@@ -121,7 +124,7 @@ class AuthController extends Controller
 
             $avatar = 'admin/no_photo.jpg'; // default for admin
             if ($req->hasFile('avatar')) {
-                $avatar = $req->file('avatar')->store('admin', ['disk' => 'public']);
+                $avatar = $req->file('avatar')->storePublicly('admin', ['disk' => 's3']);
             }
 
             $req->merge(['role_id' => 2]); // set admin role
@@ -137,7 +140,7 @@ class AuthController extends Controller
                 'message' => 'Admin registered successfully',
                 'data' => [
                     'user' => $user,
-                    'avatar_url' => asset('storage/' . $user->avatar),
+                    'avatar_url' => 'https://romsaydev.s3.us-east-1.amazonaws.com/' . $user->avatar,
                     'token' => $token,
                 ]
             ]);
@@ -155,7 +158,7 @@ class AuthController extends Controller
 
             $avatar = 'superAdmin/no_photo.jpg'; // default for super admin
             if ($req->hasFile('avatar')) {
-                $avatar = $req->file('avatar')->store('superAdmin', ['disk' => 'public']);
+                $avatar = $req->file('avatar')->storePublicly('superAdmin', ['disk' => 's3']);
             }
 
             $req->merge(['role_id' => 3]); // set super admin role
@@ -171,7 +174,7 @@ class AuthController extends Controller
                 'message' => 'Super Admin registered successfully',
                 'data' => [
                     'user' => $user,
-                    'avatar_url' => asset('storage/' . $user->avatar),
+                    'avatar_url' => 'https://romsaydev.s3.us-east-1.amazonaws.com/' . $user->avatar,
                     'token' => $token,
                 ]
             ]);

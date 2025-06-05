@@ -51,14 +51,14 @@ class UserController extends Controller
 
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
-            // Delete old avatar if it's not the default
-            if ($user->avatar !== 'user/no_photo.jpg') {
-                Storage::disk('public')->delete($user->avatar);
+            // Delete old avatar from S3 if it's not the default
+            if ($user->avatar && $user->avatar !== 'user/no_photo.jpg') {
+                Storage::disk('s3')->delete($user->avatar);
             }
 
-            // Store new avatar in 'user' directory
-            $avatarPath = $request->file('avatar')->store('user', ['disk' => 'public']);
-            $user->avatar = $avatarPath;
+            // Store new avatar in 'public/users' directory on S3
+            $avatarPath = $request->file('avatar')->storePublicly('public/users', ['disk' => 's3']);
+            $user->avatar = 'https://romsaydev.s3.us-east-1.amazonaws.com/' . $avatarPath; // This will be the S3 key/path
         }
 
         // Update user data

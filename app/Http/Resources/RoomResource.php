@@ -13,7 +13,11 @@ class RoomResource extends JsonResource
             'id' => $this->id,
             'room_number' => $this->room_number,
             'desc' => $this->desc,
-            'room_image' => asset('storage/' . $this->room_image),
+            'room_image' => $this->whenLoaded('roomType', function () {
+                return $this->roomType && $this->roomType->image
+                    ? 'https://romsaydev.s3.us-east-1.amazonaws.com/' . $this->roomType->image
+                    : null;
+            }, null),
             'is_active' => (bool) $this->is_active,
             'room_type' => $this->whenLoaded('roomType', function() {
                 return [
