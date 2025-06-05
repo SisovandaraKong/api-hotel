@@ -19,7 +19,7 @@ class ImageUploadController extends Controller
     // }  
     public function uploadImage(Request $request)
 {
-    $path = $request->file('image')->store('images', 's3');
+    $path = $request->file('image')->storePublicly('public/images', 's3');
 
     return response()->json([
         'success' => true,
