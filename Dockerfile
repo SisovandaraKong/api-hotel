@@ -3,10 +3,10 @@
 # ==============================
 FROM php:8.2-fpm AS build
 
-# Install system dependencies
+# Install system dependencies, including curl and openssl for AWS SDK support
 RUN apt-get update && apt-get install -y \
     git \
-    curl \
+    curl \                      # Added: system curl for PHP curl extension & HTTP requests
     zip \
     unzip \
     libonig-dev \
@@ -20,8 +20,20 @@ RUN apt-get update && apt-get install -y \
     default-mysql-client \
     default-libmysqlclient-dev \
     libjpeg62-turbo-dev \
+    openssl \                  # Added: system openssl for PHP openssl extension
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        sodium \
+        curl \                 # Added: PHP curl extension (required by AWS SDK)
+        openssl                # Added: PHP openssl extension (required by AWS SDK)
 
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
@@ -36,10 +48,10 @@ WORKDIR /var/www/html
 # Copy Laravel app
 COPY . .
 
-# Install PHP dependencies
+# Install PHP dependencies without dev packages, optimize autoloader
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Build frontend (optional)
+# Build frontend assets if package.json exists
 RUN if [ -f package.json ]; then npm install && npm run build; fi
 
 # ==============================
@@ -47,7 +59,7 @@ RUN if [ -f package.json ]; then npm install && npm run build; fi
 # ==============================
 FROM php:8.2-fpm
 
-# Copy system packages again for runtime
+# Install system dependencies again for runtime, including curl and openssl
 RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
@@ -60,8 +72,21 @@ RUN apt-get update && apt-get install -y \
     default-mysql-client \
     default-libmysqlclient-dev \
     libjpeg62-turbo-dev \
+    curl \                    # Added: system curl for runtime
+    openssl \                 # Added: system openssl for runtime
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        sodium \
+        curl \               # Added: PHP curl extension runtime
+        openssl              # Added: PHP openssl extension runtime
 
 # Set working directory
 WORKDIR /var/www/html
@@ -69,14 +94,13 @@ WORKDIR /var/www/html
 # Copy built app from build stage
 COPY --from=build /var/www/html /var/www/html
 
-# Set correct permissions for Laravel storage and cache
+# Set correct permissions for Laravel storage and cache directories
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-
-# Expose port
+# Expose port 8000 for Laravel development server
 EXPOSE 8000
 
-# Start Laravel app
+# Start Laravel app with typical maintenance commands before serve
 CMD php artisan storage:link && \
     php artisan migrate --force && \
     php artisan db:seed --force && \
