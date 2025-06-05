@@ -20,9 +20,8 @@ RUN apt-get update && apt-get install -y \
     default-mysql-client \
     default-libmysqlclient-dev \
     libjpeg62-turbo-dev \
-    openssl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium curl openssl
+    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium
 
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
@@ -61,9 +60,8 @@ RUN apt-get update && apt-get install -y \
     default-mysql-client \
     default-libmysqlclient-dev \
     libjpeg62-turbo-dev \
-    openssl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium curl openssl
+    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip sodium
 
 # Set working directory
 WORKDIR /var/www/html
@@ -73,6 +71,7 @@ COPY --from=build /var/www/html /var/www/html
 
 # Set correct permissions for Laravel storage and cache
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
 
 # Expose port
 EXPOSE 8000
