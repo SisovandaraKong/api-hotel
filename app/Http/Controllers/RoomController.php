@@ -171,112 +171,63 @@ class RoomController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified room in storage.
-     * Only accessible by admin and superadmin.
-     */
-    public function update(Request $req, $id)
-    {
-        // Check if user is admin or super admin
-        // $user = $req->user('sanctum');
-        // if (!$user || !$user->isAdmin()) {
-        //     return response()->json([
-        //         'result' => false,
-        //         'message' => 'Unauthorized. Only admin and super admin can update rooms.',
-        //         'data' => null
-        //     ], 403);
-        // }
-
-        // Validate request
-        $req->merge(['id' => $id]);
-        $req->validate([
-            'id' => ['required', 'integer', 'min:1', 'exists:rooms,id'],
-            'room_number' => ['required', 'string', 'max:10', 'unique:rooms,room_number,' . $id],
-            'room_type_id' => ['required', 'integer', 'exists:room_types,id'],
-            'desc' => ['required', 'string'],
-            'room_image' => ['nullable', 'file', 'mimetypes:image/png,image/jpeg,image/jpg', 'max:2048'],
-            'room_images' => ['nullable', 'array', 'max:5'],
-            'room_images.*' => ['file', 'mimetypes:image/png,image/jpeg,image/jpg', 'max:2048'],
-            'remove_image_ids' => ['nullable', 'array'],
-            'remove_image_ids.*' => ['integer', 'exists:room_images,id'],
-        ]);
-
-        // Get room
-        $room = Room::with('images')->find($id);
-
-        // If room not found
-        if (!$room) {
-            return response()->json([
-                'result' => false,
-                'message' => 'Room not found',
-                'data' => null
-            ], 404);
-        }
-
-        // Handle room thumbnail
-        if ($req->hasFile('room_image')) {
-            $newThumbnail = $req->file('room_image')->store('rooms', ['disk' => 'public']);
-
-            // Delete old thumbnail if it's not the default
-            if ($room->room_image !== 'no_image.jpg') {
-                Storage::disk('public')->delete($room->room_image);
-            }
-
-            $room->room_image = $newThumbnail;
-        }
-
-        // Handle removing specific images if requested
-        if ($req->has('remove_image_ids') && is_array($req->remove_image_ids)) {
-            foreach ($req->remove_image_ids as $imageId) {
-                $image = $room->images()->where('id', $imageId)->first();
-
-                if ($image) {
-                    Storage::disk('public')->delete($image->image_url);
-                    $image->delete();
-                }
-            }
-        }
-
-        // Handle adding new room images
-        if ($req->hasFile('room_images')) {
-            // Count existing images after removals
-            $existingImagesCount = $room->images()->count();
-            $newImagesCount = count($req->file('room_images'));
-
-            // Check if adding new images would exceed the limit of 5
-            if ($existingImagesCount + $newImagesCount > 5) {
-                return response()->json([
-                    'result' => false,
-                    'message' => 'Maximum 5 room images allowed. You already have ' . $existingImagesCount . ' images.',
-                    'data' => null
-                ], 422);
-            }
-
-            foreach ($req->file('room_images') as $image) {
-                $imagePath = $image->store('room_images', ['disk' => 'public']);
-
-                // Store image path in room_images table
-                $room->images()->create([
-                    'image_url' => $imagePath
-                ]);
-            }
-        }
-
-        // Update room data
-        $room->room_number = $req->input('room_number');
-        $room->room_type_id = $req->input('room_type_id');
-        $room->desc = $req->input('desc');
-        $room->save();
-
-        // Refresh room with its type and images
-        $room = Room::with(['roomType', 'images'])->find($id);
-
+//update room type by id and only role id 2 as admin
+public function update(Request $req, $id)
+{
+    // Check if user is admin (role_id == 2)
+    $user = $req->user('sanctum');
+    if (!$user || $user->role_id != 2) {
         return response()->json([
-            'result' => true,
-            'message' => 'Room updated successfully',
-            'data' => new RoomResource($room)
-        ]);
+            'result' => false,
+            'message' => 'Unauthorized. Only admin can update rooms.',
+            'data' => null
+        ], 403);
     }
+
+    // Validate request
+    $req->merge(['id' => $id]);
+    $req->validate([
+        'id' => ['required', 'integer', 'min:1', 'exists:rooms,id'],
+        'room_number' => ['required', 'string', 'max:10', 'unique:rooms,room_number,' . $id],
+        'room_type_id' => ['required', 'integer', 'exists:room_types,id'],
+        'desc' => ['required', 'string'],
+        'is_active' => ['required', 'boolean'],
+    ]);
+
+    // Find the room
+    $room = Room::find($id);
+    if (!$room) {
+        return response()->json([
+            'result' => false,
+            'message' => 'Room not found.',
+            'data' => null
+        ], 404);
+    }
+
+    // Update room data
+    $room->room_number = $req->input('room_number');
+    $room->room_type_id = $req->input('room_type_id');
+    $room->desc = $req->input('desc');
+    $room->is_active = $req->input('is_active');
+
+    // Optionally update thumbnail from room type
+    $roomType = RoomType::find($req->input('room_type_id'));
+    if ($roomType && $roomType->image) {
+        $room->room_image = $roomType->image;
+    }
+
+    $room->save();
+
+    // Refresh and return updated room
+    $room = Room::with(['roomType', 'images'])->find($room->id);
+
+    return response()->json([
+        'result' => true,
+        'message' => 'Room updated successfully',
+        'data' => new RoomResource($room)
+    ]);
+}
+
 
     /**
      * Remove the specified room from storage.

@@ -17,7 +17,6 @@ class IsAdmin
                 'message' => 'You do not have permission to access.'
             ], 401);
         }
-
         return $next($req);
     }
 }
