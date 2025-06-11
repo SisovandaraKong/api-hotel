@@ -14,8 +14,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\ServiceTypeController;
 use App\Http\Controllers\ServiceController;
-
 use App\Http\Controllers\ImageUploadController;
+use App\Http\Controllers\PaymentTestController;
+use App\Http\Controllers\PaymentController;
 
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -60,6 +61,9 @@ Route::get('/regularUsers/{id}', [UserController::class, 'getRegularUserById']);
 Route::post('/upload-image', [ImageUploadController::class, 'uploadImage']);
 // Get all images
 Route::get('/images', [ImageUploadController::class, 'getAllImages']);
+// payment routes single
+Route::post('/stripe/charge', [PaymentTestController::class, 'charge']);
+
 
 
 
@@ -69,6 +73,9 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 
+    // payment routes for react frontend
+    Route::post('/payments/process', [PaymentController::class, 'processPayment']);
+    Route::get('/payments', [PaymentController::class, 'getAllPayments']);
 
     // User profile routes
     Route::get('/profile', [UserController::class, 'profile']);

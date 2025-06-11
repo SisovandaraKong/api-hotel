@@ -15,6 +15,7 @@ class Payment extends Model
         'transaction_id',
         'payment_status',
         'date_payment',
+        'receipt_url',
     ];
     protected $casts = [
         'date_payment' => 'datetime',

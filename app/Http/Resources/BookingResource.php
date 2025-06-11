@@ -13,10 +13,10 @@ class BookingResource extends JsonResource
             'id' => $this->id,
             'user_id' => $this->user_id,
             'booking_status' => $this->booking_status,
-            'check_in_date' => $this->check_in_date,
-            'check_out_date' => $this->check_out_date,
+            'check_in_date' => $this->check_in_date->toIso8601String(),
+            'check_out_date' => $this->check_out_date->toIso8601String(),
             'cancellation_reason' => $this->cancellation_reason,
-            'user' => $this->whenLoaded('user', function() {
+            'user' => $this->whenLoaded('user', function () {
                 return [
                     'id' => $this->user->id,
                     'username' => $this->user->username,
@@ -24,8 +24,8 @@ class BookingResource extends JsonResource
                     'phone' => $this->user->phone,
                 ];
             }),
-            'rooms' => $this->whenLoaded('bookingRooms', function() {
-                return $this->bookingRooms->map(function($bookingRoom) {
+            'rooms' => $this->whenLoaded('bookingRooms', function () {
+                return $this->bookingRooms->map(function ($bookingRoom) {
                     return [
                         'id' => $bookingRoom->room->id,
                         'room_number' => $bookingRoom->room->room_number,
@@ -37,14 +37,15 @@ class BookingResource extends JsonResource
                     ];
                 });
             }, []),
-            'payment' => $this->whenLoaded('payment', function() {
+            'payment' => $this->whenLoaded('payment', function () {
                 return [
                     'id' => $this->payment->id,
                     'total_payment' => (float) $this->payment->total_payment,
                     'method_payment' => $this->payment->method_payment,
                     'transaction_id' => $this->payment->transaction_id,
                     'payment_status' => $this->payment->payment_status,
-                    'date_payment' => $this->payment->date_payment,
+                    'receipt_url' => $this->payment->receipt_url,  // added here
+                    'date_payment' => $this->payment->date_payment ? $this->payment->date_payment->toIso8601String() : null,
                 ];
             }),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
