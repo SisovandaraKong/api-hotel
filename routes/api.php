@@ -17,6 +17,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\PaymentTestController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\SocialAuthController;
 
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -25,6 +26,12 @@ Route::post('/register-super-admin', [AuthController::class, 'registerSuperAdmin
 // Auth routes
 
 Route::post('/auth/login', [AuthController::class, 'login']);
+
+Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirectToGoogle']);
+Route::post('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
+
+Route::get('/auth/github/redirect', [SocialAuthController::class, 'redirectToGithub']);
+Route::get('/auth/github/callback', [SocialAuthController::class, 'handleGithubCallback']);
 
 
 // Public room routes
