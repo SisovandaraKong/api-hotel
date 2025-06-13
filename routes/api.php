@@ -28,7 +28,7 @@ Route::post('/register-super-admin', [AuthController::class, 'registerSuperAdmin
 Route::post('/auth/login', [AuthController::class, 'login']);
 
 Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirectToGoogle']);
-Route::post('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
+Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
 
 Route::get('/auth/github/redirect', [SocialAuthController::class, 'redirectToGithub']);
 Route::get('/auth/github/callback', [SocialAuthController::class, 'handleGithubCallback']);
