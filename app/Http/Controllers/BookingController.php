@@ -348,6 +348,87 @@ public function store(Request $req)
         ]);
     }
 
+    // update completed booking by changes $booking->booking_status = 'confirmed'; to 'completed'
+    public function updateCompleted(Request $req, $id){
+        $user = $req->user('sanctum');
+
+        // Validate
+        $req->merge(['id' => $id]);
+        $req->validate([
+            'id' => ['required', 'integer', 'min:1', 'exists:bookings,id'],
+        ]);
+
+        // Get booking
+        $booking = Booking::find($id);
+
+        // If booking not found
+        if (!$booking) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Booking not found',
+                'data' => null
+            ], 404);
+        }
+
+        // Check if user is authorized to cancel this booking
+        // Regular users (role_id = 1) can only cancel their own bookings
+        // Admins (role_id = 2) and Super Admins (role_id = 3) can cancel all bookings
+        if ($user->role_id == 1 && $booking->user_id !== $user->id) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorized to cancel this booking',
+                'data' => null
+            ], 403);
+        }
+
+        // Check if booking can be cancelled
+        if ($booking->booking_status === 'completed') {
+            return response()->json([
+                'result' => false,
+                'message' => 'Booking is already completed',
+                'data' => null
+            ], 422);
+        }
+
+        if ($booking->booking_status === 'cancelled') {
+            return response()->json([
+                'result' => false,
+                'message' => 'Cannot complete a cancelled booking',
+                'data' => null
+            ], 422);
+        }
+
+        $booking->booking_status = 'completed';
+        $booking->save();
+
+        // Refresh booking with relationships
+        $booking = Booking::with([
+            'bookingRooms.room.roomType',
+            'payment'
+        ])->find($id);
+
+        return response()->json([
+            'result' => true,
+            'message' => 'Booking completed successfully',
+            'data' => new BookingResource($booking),
+            'cancellation_policy' => response()->json([
+            'result' => true,
+            'message' => 'Cancellation policy retrieved successfully',
+            'data' => [
+                'policy' => 'Bookings can be cancelled free of charge at least 24 hours before the check-in date. Cancellations made less than 24 hours before check-in are not refundable.',
+                'terms' => [
+                    'Cancellations must be made at least 24 hours before the check-in date for a full refund.',
+                    'Cancellations made less than 24 hours before check-in are not eligible for a refund.',
+                    'No-shows will be charged the full amount of the booking.',
+                    'Early departure will not result in a refund for unused nights.',
+                    'All refunds will be processed within 7-14 business days.'
+                ]
+
+            ]
+        ])
+        ]);
+    }
+
     /**
      * Get cancellation policy.
      */

@@ -171,26 +171,31 @@ class RatingController extends Controller
     /**
      * Get ratings for a specific room.
      */
-    public function getRoomRatings(Request $req, $roomId)
-    {
-        // Validate
-        $req->merge(['room_id' => $roomId]);
-        $req->validate([
-            'room_id' => ['required', 'integer', 'min:1', 'exists:rooms,id'],
-            'per_page' => ['nullable', 'integer', 'min:1'],
-            'page' => ['nullable', 'integer', 'min:1'],
-        ]);
+public function getRoomRatings(Request $req, $roomId)
+{
+    $req->merge(['room_id' => $roomId]);
+    $req->validate([
+        'room_id' => ['required', 'integer', 'min:1', 'exists:rooms,id'],
+        'per_page' => ['nullable', 'integer', 'min:1'],
+        'page' => ['nullable', 'integer', 'min:1'],
+    ]);
 
-        $per_page = $req->filled('per_page') ? intval($req->input('per_page')) : 10;
+    $perPage = $req->input('per_page', 10);
 
-        // Get ratings for the room
-        $ratings = Rating::whereHas('booking.bookingRooms', function($query) use ($roomId) {
+    $ratings = Rating::whereHas('booking.bookingRooms', function ($query) use ($roomId) {
             $query->where('room_id', $roomId);
         })
-        ->with('user:id,username')
-        ->orderBy('created_at', 'desc')
-        ->paginate($per_page);
+        ->with('user:id,name') // Load user's name instead of username
+        ->orderByDesc('created_at')
+        ->paginate($perPage);
 
-        return $this->res_paginate($ratings, 'Room ratings retrieved successfully', RatingResource::collection($ratings));
+    return $this->res_paginate($ratings, 'Room ratings retrieved successfully', RatingResource::collection($ratings));
+}
+
+    //get all rating 
+    public function getAllRatings(Request $req)
+    {
+        $ratings = Rating::with('user:id,name')->orderBy('created_at', 'desc')->paginate(10);
+        return $this->res_paginate($ratings, 'All ratings retrieved successfully', RatingResource::collection($ratings));
     }
 }

@@ -33,6 +33,10 @@ Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleC
 Route::get('/auth/github/redirect', [SocialAuthController::class, 'redirectToGithub']);
 Route::get('/auth/github/callback', [SocialAuthController::class, 'handleGithubCallback']);
 
+Route::post('/auth/get-user', [SocialAuthController::class, 'getUserByEmail']);
+
+
+
 
 // Public room routes
 Route::prefix('rooms')->group(function () {
@@ -49,6 +53,8 @@ Route::get('/users', [UserController::class, 'index']);
 
 // Get all admins
 Route::get('/admins', [SuperAdminController::class, 'getAllAdmins']);
+
+
 
 // Get all super admins
 Route::get('/super-admins', [SuperAdminController::class, 'getSuperAdmins']);
@@ -104,10 +110,16 @@ Route::middleware(['auth:sanctum', IsLogin::class])->group(function () {
     Route::put('/bookingServices/{id}', [BookingController::class, 'updateBookingServiceById']);
     Route::delete('/bookingServices/{id}', [BookingController::class, 'deleteBookingServiceById']);
 
+    // update booing to status completed
+    Route::put('/bookings/{id}/complete', [BookingController::class, 'updateCompleted']);
+
     // Rating routes
     Route::post('/ratings', [RatingController::class, 'store']);
     Route::put('/ratings/{id}', [RatingController::class, 'update']);
     Route::delete('/ratings/{id}', [RatingController::class, 'destroy']);
+    Route::get('/ratings', [RatingController::class, 'getAllRatings']);
+    Route::get('/rooms/{id}/ratings', [RatingController::class, 'getRoomRatings']);
+
 
 
     // Admin routes

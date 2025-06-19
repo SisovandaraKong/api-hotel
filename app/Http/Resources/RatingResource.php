@@ -18,7 +18,7 @@ class RatingResource extends JsonResource
             'user' => $this->whenLoaded('user', function() {
                 return [
                     'id' => $this->user->id,
-                    'username' => $this->user->username,
+                    'name' => $this->user->name,
                 ];
             }),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
